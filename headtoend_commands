@@ -1,0 +1,29 @@
+router ip  172.20.10.1
+
+cd /root
+sudo modprobe -r iwlwifi mac80211
+sudo modprobe iwlwifi connector_log=0x1
+sudo killall wpa_supplicant
+
+# connect to a WIFI
+sudo linux-80211n-csitool-supplementary/netlink/log_to_file /root/Wifi-Localization-master/sample_data/csi_1122.dat
+(ping 172.20.10.1)
+
+
+# start pycharm
+cd /pycharm-community-2017.2.4/bin
+./pycharm.sh
+
+---------------------------------------------------
+
+cp /root/csitest3_1.dat /home/zhaoxin/文档/linux-80211n-csitool-supplementary-master/matlab/sample_data
+
+
+# start matlab
+cd /usr/local/MATLAB/R2017b/bin/
+./matlab
+
+# matlab word directory
+/home/zhaoxin/文档/linux-80211n-csitool-supplementary-master/matlab
+
+
