@@ -30,7 +30,7 @@ def spotfi_algorithm_1_package_one(csi_matrix):
     for m in range(phase_matrix.shape[0]):
         for n in range(phase_matrix.shape[1]):
             C[m,n] = np.exp(complex(0,phase_matrix[m,n] - (n)*tau_offset))
-    #csi_matrix_clean = np.multiply(R,C)
+    # csi_matrix_clean = np.multiply(R,C)
     return C, tau_offset
 
 def spotfi_algorithm_1(csi_matrix,C):
@@ -40,12 +40,12 @@ def spotfi_algorithm_1(csi_matrix,C):
 
 
 def smooth_csi(csi):
-    smoothed_csi = np.zeros((30,32),dtype=np.complex_)
+    smoothed_csi = np.zeros((30, 32), dtype=np.complex_)
     # Antenna 1 (values go in the upper left quadrant)
     m = 0
-    for ii in np.linspace(0,14,15):
+    for ii in range(0, 15):
         n = 0
-        for j in np.linspace(ii,ii+15,16):
+        for j in range(ii, ii+16):
             smoothed_csi[m, n] = csi[0, j]
             n = n + 1
         m = m + 1
@@ -53,26 +53,26 @@ def smooth_csi(csi):
     # Antenna 2
 
     # # Bottom left of smoothed csi matrix
-    for ii in np.linspace(0,14,15):
+    for ii in range(0, 15):
         n = 0
-        for j in np.linspace(ii,ii+15,16):
+        for j in range(ii, ii+16):
             smoothed_csi[m, n] = csi[1, j] # 2 + sqrt(-1) * j;
             n = n + 1
         m = m + 1
 
     # Top right of smoothed csi matrix
     m = 0;
-    for ii in np.linspace(0,14,15):
+    for ii in range(0, 15):
         n = 16
-        for j in np.linspace(ii,ii+15,16):
+        for j in range(ii, ii+16):
             smoothed_csi[m, n] = csi[1, j]  #2 + sqrt(-1) * j;
             n = n + 1
         m = m + 1
 
     # Antenna 3 (values go in the lower right quadrant)
-    for ii in np.linspace(0,14,15):
+    for ii in range(0, 15):
         n = 16
-        for j in np.linspace(ii,ii+15,16):
+        for j in range(ii, ii+16):
             smoothed_csi[m, n] = csi[2, j]   #3 + sqrt(-1) * j;
             n = n + 1
         m = m + 1
@@ -123,7 +123,7 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     decrease_ratios = np.zeros(start_index - end_index + 1)
 
     k=0
-    for ii in np.linspace(28,18,11):
+    for ii in range(28, 17, -1):
         temp_decrease_ratio = w[ii + 1] / w[ii]
         decrease_ratios[k] = temp_decrease_ratio
         k = k + 1
@@ -133,7 +133,7 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     num_computed_paths = len(w) - index_in_eigenvalues + 1
 
     # Estimate noise subspace
-    column_indices = np.linspace(0,(len(w) - num_computed_paths)-1,(len(w) - num_computed_paths))
+    column_indices = range(0, (len(w) - num_computed_paths))
     eigenvectors = v[:, list(column_indices)]
 
     # Peak search
@@ -141,8 +141,8 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     tau = np.linspace(0,3000 * pow(10,-9),61)
     Pmusic = np.zeros((len(theta), len(tau)))
 
-    for ii in np.linspace(0,len(theta)-1,len(theta)):
-        for jj in np.linspace(0, len(tau)-1,len(tau)):
+    for ii in range(0, len(theta)):
+        for jj in range(0, len(tau)):
             steering_vector = compute_steering_vector(theta[ii], tau[jj],frequency, sub_freq_delta, antenna_distance)
             PP = np.dot(np.dot(steering_vector.conj().T,eigenvectors),np.dot(eigenvectors.conj().T,steering_vector))
             Pmusic[ii,jj] = 10*math.log(np.abs(1/PP),10)
@@ -155,7 +155,7 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     maximum_idx_array=maximum_idx_array[1:,]
     return maximum_idx_array
 
-def csi_plot(theta1,theta2,d):
+def csi_plot(theta1, theta2, d):
     rad1 = theta1*math.pi/180
     rad2 = theta2*math.pi/180
 
