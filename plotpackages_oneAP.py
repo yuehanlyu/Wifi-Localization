@@ -26,7 +26,8 @@ if __name__ == '__main__':
     C, tau_offset = spotfi_algorithms.spotfi_algorithm_1_package_one(csi_matrix)
 
     all_maximum_idx_array = np.zeros(2)
-    for i in tqdm(range(file_data.shape[0])):
+    #for i in tqdm(range(file_data.shape[0])):
+    for i in tqdm(range(20)):
         csi_entry = file_data.loc[i]
         csi = load_csi_data.get_scale_csi(csi_entry)
         # run algorithm 1 for the first package
@@ -57,3 +58,40 @@ if __name__ == '__main__':
     pp.ylabel("tof")
     pp.legend(loc=2)
     pp.show()
+
+    disMat = sch.distance.pdist(candicate_aoa_tof, 'euclidean')
+    Z = sch.linkage(disMat, method='ward')
+    # P=sch.dendrogram(Z)
+
+    raw_package_results['cluster'] = sch.fcluster(Z, t=1.115, criterion='inconsistent', depth=2)
+    clusters = sorted(raw_package_results['cluster'].unique())
+
+    data_likelihood = pd.DataFrame(columns=['cluster', 'cnt', 'aoa_mean', 'tof_mean', 'aoa_variance', 'tof_variance'])
+    for i in clusters:
+        data_likelihood.loc[i - 1, 'cluster'] = i
+        data_likelihood.loc[i - 1, 'cnt'] = sum(raw_package_results['cluster'] == i)
+        data_likelihood.loc[i - 1, 'aoa_mean'] = (
+        raw_package_results['aoa'][raw_package_results['cluster'] == i]).mean()
+        data_likelihood.loc[i - 1, 'tof_mean'] = (
+        raw_package_results['tof'][raw_package_results['cluster'] == i]).mean()
+        data_likelihood.loc[i - 1, 'aoa_variance'] = (
+        raw_package_results['aoa'][raw_package_results['cluster'] == i]).var()
+        data_likelihood.loc[i - 1, 'tof_variance'] = (
+        raw_package_results['tof'][raw_package_results['cluster'] == i]).var()
+
+    weight_num_cluster_points = 0.01
+    weight_aoa_variance = -0.004
+    weight_tof_variance = -0.0016
+    weight_tof_mean = -0.0000
+    constant_offset = -1
+
+    data_likelihood['likelihood'] = (weight_num_cluster_points * data_likelihood['cnt'] \
+                                     + weight_aoa_variance * data_likelihood['aoa_variance'] \
+                                     + weight_tof_variance * data_likelihood['tof_variance'] \
+                                     + weight_tof_mean * data_likelihood['tof_mean']).apply(lambda x: math.exp(x))
+
+    data_likelihood['likelihood'].fillna(0, inplace=True)
+    # cheating
+    data_likelihood['likelihood'][data_likelihood['aoa_mean'] == -90] = 0
+
+    print (data_likelihood)
