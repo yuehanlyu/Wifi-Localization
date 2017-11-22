@@ -24,40 +24,10 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 if __name__ == '__main__':
+    file_data = read_bf_file('./sample_data/csi_sym_1.dat')
     antenna_distance = 0.1
     frequency = 2.417*pow(10,9)
     sub_freq_delta = 3125
-
-
-
-    # ### 两个AP，从收到数据到出定位图
-
-
-    all_maximum_idx_array = np.zeros(2)
-    csi_entry  = file_data.loc[1]
-    csi = get_scale_csi(csi_entry)
-    # run algorithm 1 for the first package
-    csi_matrix = csi[0,:,:]
-
-    csi_matrix_clean = spotfi_algorithm_1(csi_matrix,C)
-    smoothed_csi = smooth_csi(csi_matrix_clean)
-    maximum_idx_array = aoa_tof_music(smoothed_csi, antenna_distance, frequency, sub_freq_delta)
-    all_maximum_idx_array = np.vstack((all_maximum_idx_array,maximum_idx_array))
-    all_maximum_idx_array = all_maximum_idx_array[1:,]
-
-
-
-    theta = np.linspace(-90,90,91)
-    tau = np.linspace(0,3000 * pow(10,-9),61)
-    candicate_aoa_tof = np.zeros(2)
-    for i in range(all_maximum_idx_array.shape[0]):
-        c_candicate = np.array((theta[int(all_maximum_idx_array[i,0])],tau[int(all_maximum_idx_array[i,1])]))
-        candicate_aoa_tof = np.vstack((candicate_aoa_tof,c_candicate))
-    candicate_aoa_tof = candicate_aoa_tof[1:,]
-    candicate_aoa_tof
-
-
-    result_aoas = np.array([0.0])
 
     for i in [1,2]:
 

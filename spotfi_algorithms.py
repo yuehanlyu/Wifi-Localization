@@ -17,7 +17,7 @@ from numpy import linalg as LA
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 import matplotlib.pyplot as pp
-warnings.filterwarnings("ignore", category=DeprecationWarning) 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def spotfi_algorithm_1_package_one(csi_matrix):
@@ -46,7 +46,7 @@ def smooth_csi(csi):
     for ii in np.linspace(0,14,15):
         n = 0
         for j in np.linspace(ii,ii+15,16):
-            smoothed_csi[m, n] = csi[0, j]  
+            smoothed_csi[m, n] = csi[0, j]
             n = n + 1
         m = m + 1
 
@@ -56,7 +56,7 @@ def smooth_csi(csi):
     for ii in np.linspace(0,14,15):
         n = 0
         for j in np.linspace(ii,ii+15,16):
-            smoothed_csi[m, n] = csi[1, j]; # 2 + sqrt(-1) * j;
+            smoothed_csi[m, n] = csi[1, j] # 2 + sqrt(-1) * j;
             n = n + 1
         m = m + 1
 
@@ -65,7 +65,7 @@ def smooth_csi(csi):
     for ii in np.linspace(0,14,15):
         n = 16
         for j in np.linspace(ii,ii+15,16):
-            smoothed_csi[m, n] = csi[1, j]; #2 + sqrt(-1) * j;
+            smoothed_csi[m, n] = csi[1, j]  #2 + sqrt(-1) * j;
             n = n + 1
         m = m + 1
 
@@ -76,7 +76,7 @@ def smooth_csi(csi):
             smoothed_csi[m, n] = csi[2, j]   #3 + sqrt(-1) * j;
             n = n + 1
         m = m + 1
-    
+
     return smoothed_csi
 
 def compute_steering_vector(theta, tau, freq, sub_freq_delta, antenna_distance):
@@ -102,7 +102,7 @@ def phi_aoa_phase(theta, frequency, d):
 
 def detect_peaks(image):
     neighborhood = generate_binary_structure(2,2)
-    local_max = maximum_filter(image, footprint=neighborhood)==image 
+    local_max = maximum_filter(image, footprint=neighborhood)==image
     background = (image==0)
     eroded_background = binary_erosion(background, structure=neighborhood, border_value=1)
     detected_peaks = local_max ^ eroded_background
@@ -114,10 +114,10 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     w = np.real(w)
     w = w/max(w)
 
-    idx = (-w).argsort()[::-1]   
+    idx = (-w).argsort()[::-1]
     w = w[idx]
     v = v[:,idx]
-    
+
     start_index = len(w)-2
     end_index = start_index - 10
     decrease_ratios = np.zeros(start_index - end_index + 1)
@@ -135,7 +135,7 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     # Estimate noise subspace
     column_indices = np.linspace(0,(len(w) - num_computed_paths)-1,(len(w) - num_computed_paths))
     eigenvectors = v[:, list(column_indices)]
-    
+
     # Peak search
     theta = np.linspace(-90,90,91)
     tau = np.linspace(0,3000 * pow(10,-9),61)
@@ -158,7 +158,7 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
 def csi_plot(theta1,theta2,d):
     rad1 = theta1*math.pi/180
     rad2 = theta2*math.pi/180
-    
+
     if theta1 == 0:
         x = 1
         k2 = math.tan(0.5*math.pi+rad2)
@@ -172,7 +172,7 @@ def csi_plot(theta1,theta2,d):
         k2 = math.tan(0.5*math.pi+rad2)
         x = d*k2/(k2-k1)+1
         y = d*k1*k2/(k2-k1)
-        
+
     X = [1,1+d]
     Y = [0,0]
     pp.scatter(X,Y,color = 'deepskyblue')
