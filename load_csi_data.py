@@ -1,6 +1,6 @@
 
 # coding: utf-8
-# Authorized credit to Zhaoxin03@ppdai.com
+# Authorized to Zhaoxin03@ppdai.com
 
 from __future__ import print_function, absolute_import, division
 import pandas as pd
