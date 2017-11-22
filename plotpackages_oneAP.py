@@ -13,7 +13,7 @@ pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 if __name__ == '__main__':
-    file_data = load_csi_data.read_bf_file('./sample_data/csi_sym_1.dat')
+    file_data = load_csi_data.read_bf_file('./sample_data/csi_1122_direct.dat')
     antenna_distance = 0.15
     frequency = 2.412 * pow(10, 9)
     sub_freq_delta = 3125
