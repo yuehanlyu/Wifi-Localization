@@ -1,6 +1,6 @@
 
 # coding: utf-8
-# Authorized to Zhaoxin03@ppdai.com
+# Authorized to zhaoxin03@ppdai.com
 
 from __future__ import print_function, absolute_import, division
 import pandas as pd
@@ -55,98 +55,4 @@ def read_bfee(inBytes,i,df_data):
                 tmp_i = ((payload[int(index/8+1)] >> remainder) | (payload[int(index/8+2)] << (8-remainder))).astype(np.int8)
                 a.append(complex(tmp_r,tmp_i))
                 index += 16
-                j +=1
-
-            csi[:,0,k] = a[:2]
-            csi[:,1,k] = a[4:]
-            csi[:,2,k] = a[2:4]
-            k += 1
-    df_data.loc[i,'csi'] = csi
-    return df_data
-
-
-
-def read_bf_file(filename):
-    cur = 0
-    count = 0
-    broken_perm = 0
-    data = pd.DataFrame(columns=['cell','timestamp_low','bfee_count','Nrx','Ntx','rssi_a','rssi_b','rssi_c','noise','agc','perm','rate','csi'])
-    triangle = [1,3,6]
-
-    f = open(filename,'rb')
-    data_len = os.path.getsize(filename)
-    #print(data_len)
-    while cur < (data_len - 3):
-        field_len = int(f.read(2).encode('hex'),16)
-        code = int(f.read(1).encode('hex'),16)
-        cur = cur + 3
-
-
-        if code == 187:
-            bytes = np.fromfile(f,np.uint8,count = field_len - 1)
-            cur = cur + field_len - 1
-            if len(bytes) != field_len - 1:
-                f.close()
-        else:
-            f.seek(field_len - 1,1)
-            cur = cur + field_len - 1
-
-        if code == 187:
-            data = read_bfee(inBytes=bytes,i=count,df_data = data)
-            perm = data.loc[count,'perm']
-            Nrx = data.loc[count,'Nrx']
-
-            if sum(perm) == triangle[Nrx-1]:
-                count = count + 1
-    f.close()
-    return data
-
-
-
-def dbinv(x):
-    ret = 10**(x/10)
-    return ret
-
-
-
-def get_total_rss(dic):
-    rssi_mag = 0
-    if dic['rssi_a'] != 0:
-        rssi_mag = rssi_mag + dbinv(dic['rssi_a'])
-    if dic['rssi_b'] != 0:
-        rssi_mag = rssi_mag + dbinv(dic['rssi_b'])
-    if dic['rssi_c'] != 0:
-        rssi_mag = rssi_mag + dbinv(dic['rssi_c'])
-
-
-    ret = 10*math.log10(rssi_mag) - 44 - dic['agc']
-
-    return ret
-
-
-
-def get_scale_csi(dic):
-    csi = dic['csi']
-    csi_conj = csi.conjugate()
-    csi_sq = np.multiply(csi,csi_conj).real
-    csi_pwr = sum(sum(sum(csi_sq[:])))
-    rssi_pwr = dbinv(get_total_rss(dic))
-    scale = rssi_pwr / (csi_pwr / 30)
-
-    if dic['noise'] == -127:
-        noise_db = -92
-    else:
-        noise_db = dic['noise']
-
-    thermal_noise_pwr = dbinv(noise_db)
-    quant_error_pwr = scale * (dic['Nrx'] * dic['Ntx'])
-    total_noise_pwr = thermal_noise_pwr + quant_error_pwr;
-
-    ret = csi * math.sqrt(scale / total_noise_pwr)
-
-    if dic['Ntx'] == 2:
-        ret = ret * math.sqrt(2)
-    elif dic['Ntx'] == 3:
-        ret = ret * math.sqrt(dbinv(4.5))
-
-    return ret
+                j +
