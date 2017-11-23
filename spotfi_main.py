@@ -56,7 +56,7 @@ if __name__ == '__main__':
         Z = sch.linkage(disMat, method='ward')
         # P=sch.dendrogram(Z)
 
-        raw_package_results['cluster'] = sch.fcluster(Z, t=1.115, criterion='inconsistent', depth=2)
+        raw_package_results['cluster'] = sch.fcluster(Z, t=1.115, criterion='distance', depth=2)
         clusters = sorted(raw_package_results['cluster'].unique())
 
         data_likelihood = pd.DataFrame(
@@ -87,6 +87,7 @@ if __name__ == '__main__':
         data_likelihood['likelihood'].fillna(0, inplace=True)
         # cheating
         data_likelihood['likelihood'][data_likelihood['aoa_mean'] == -90] = 0
+        data_likelihood['likelihood'][data_likelihood['aoa_mean'] == 90] = 0
 
         result_aoa_1 = data_likelihood['aoa_mean'][data_likelihood['likelihood'] == max(data_likelihood['likelihood'])]
 
