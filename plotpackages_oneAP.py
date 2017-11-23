@@ -13,7 +13,7 @@ pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 if __name__ == '__main__':
-    file_data = load_csi_data.read_bf_file('./sample_data/csi_mid_3.dat')
+    file_data = load_csi_data.read_bf_file('./sample_data/csi_mid_1.dat')
     antenna_distance = 0.15
     frequency = 2.412 * pow(10, 9)
     sub_freq_delta = 3125
@@ -28,8 +28,8 @@ if __name__ == '__main__':
     C, tau_offset = spotfi_algorithms.spotfi_algorithm_1_package_one(csi_matrix)
 
     all_maximum_idx_array = np.zeros(2)
-    #for i in tqdm(range(file_data.shape[0])):
-    for i in tqdm(range(20)):
+    for i in tqdm(range(file_data.shape[0])):
+    #for i in tqdm(range(20)):
         csi_entry = file_data.loc[i]
         csi = load_csi_data.get_scale_csi(csi_entry)
         # run algorithm 1 for the first package
@@ -41,12 +41,9 @@ if __name__ == '__main__':
                                                             sub_freq_delta, theta_range, tau_range)
         all_maximum_idx_array = np.vstack((all_maximum_idx_array, maximum_idx_array))
 
-    theta = np.linspace(-90, 90, 91)
-    tau = np.linspace(0, 3000 * pow(10, -9), 61)
-
     candicate_aoa_tof = np.zeros(2)
     for i in range(all_maximum_idx_array.shape[0]):
-        c_candicate = np.array((theta[int(all_maximum_idx_array[i, 0])], tau[int(all_maximum_idx_array[i, 1])]))
+        c_candicate = np.array((theta_range[int(all_maximum_idx_array[i, 0])], tau_range[int(all_maximum_idx_array[i, 1])]))
         candicate_aoa_tof = np.vstack((candicate_aoa_tof, c_candicate))
     candicate_aoa_tof = candicate_aoa_tof[1:, ]
 
@@ -95,5 +92,6 @@ if __name__ == '__main__':
     data_likelihood['likelihood'].fillna(0, inplace=True)
     # cheating
     data_likelihood['likelihood'][data_likelihood['aoa_mean'] == -90] = 0
+    data_likelihood['likelihood'][data_likelihood['aoa_mean'] == 90] = 0
 
     print (data_likelihood)
