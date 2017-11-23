@@ -1,6 +1,5 @@
-
 # coding: utf-8
-# Authorized to Zhaoxin03@ppdai.com
+# Authorized to zhaoxin03@ppdai.com
 
 from __future__ import print_function, absolute_import, division
 import pandas as pd
