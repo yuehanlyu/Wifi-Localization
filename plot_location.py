@@ -12,7 +12,7 @@ pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
 
     theta_left = 42.0 + 90
     theta_mid = 12 + 90
@@ -39,8 +39,6 @@ if __name__ == 'main':
 
     X = [-2.33, 0, 2.33]
     Y = [0, 0, 0]
-    pp.interactive(False)
-    print ('i am running')
     Tar_x = [0]
     Tar_y = [2.54]
     pp.scatter(X, Y, color='deepskyblue')
