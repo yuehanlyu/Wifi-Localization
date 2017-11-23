@@ -18,6 +18,9 @@ if __name__ == '__main__':
     frequency = 2.417 * pow(10, 9)
     sub_freq_delta = 3125
 
+    theta_range = np.linspace(-90,90,91)
+    tau_range = np.linspace(0,3000 * pow(10,-9),61)
+
     result_aoas = np.array([0.0])
     for i in [1, 2]:
 
@@ -38,15 +41,12 @@ if __name__ == '__main__':
             # return the smoothed_csi matrix
             smoothed_csi = spotfi_algorithms.smooth_csi(csi_matrix_clean)
             maximum_idx_array = spotfi_algorithms.aoa_tof_music(smoothed_csi, antenna_distance, frequency,
-                                                                sub_freq_delta)
+                                                                sub_freq_delta, theta_range, tau_range)
             all_maximum_idx_array = np.vstack((all_maximum_idx_array, maximum_idx_array))
-
-        theta = np.linspace(-90, 90, 91)
-        tau = np.linspace(0, 3000 * pow(10, -9), 61)
 
         candicate_aoa_tof = np.zeros(2)
         for i in range(all_maximum_idx_array.shape[0]):
-            c_candicate = np.array((theta[int(all_maximum_idx_array[i, 0])], tau[int(all_maximum_idx_array[i, 1])]))
+            c_candicate = np.array((theta_range[int(all_maximum_idx_array[i, 0])], tau_range[int(all_maximum_idx_array[i, 1])]))
             candicate_aoa_tof = np.vstack((candicate_aoa_tof, c_candicate))
         candicate_aoa_tof = candicate_aoa_tof[1:, ]
 

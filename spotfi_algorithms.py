@@ -108,7 +108,7 @@ def detect_peaks(image):
     detected_peaks = local_max ^ eroded_background
     return detected_peaks
 
-def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
+def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta, theta_range, tau_range):
     R = np.dot(x,x.conj().T)
     w, v = LA.eig(R)
     w = np.real(w)
@@ -137,13 +137,13 @@ def aoa_tof_music(x, antenna_distance, frequency, sub_freq_delta):
     eigenvectors = v[:, list(column_indices)]
 
     # Peak search
-    theta = np.linspace(-90,90,91)
-    tau = np.linspace(0,3000 * pow(10,-9),61)
-    Pmusic = np.zeros((len(theta), len(tau)))
+    # theta_range = np.linspace(-90,90,91)
+    # tau_range = np.linspace(0,3000 * pow(10,-9),61)
+    Pmusic = np.zeros((len(theta_range), len(tau_range)))
 
-    for ii in range(0, len(theta)):
-        for jj in range(0, len(tau)):
-            steering_vector = compute_steering_vector(theta[ii], tau[jj],frequency, sub_freq_delta, antenna_distance)
+    for ii in range(0, len(theta_range)):
+        for jj in range(0, len(tau_range)):
+            steering_vector = compute_steering_vector(theta_range[ii], tau_range[jj],frequency, sub_freq_delta, antenna_distance)
             PP = np.dot(np.dot(steering_vector.conj().T,eigenvectors),np.dot(eigenvectors.conj().T,steering_vector))
             Pmusic[ii,jj] = 10*math.log(np.abs(1/PP),10)
     detected_peaks = detect_peaks(Pmusic)
