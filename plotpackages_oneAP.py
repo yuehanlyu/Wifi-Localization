@@ -63,7 +63,7 @@ if __name__ == '__main__':
     Z = sch.linkage(disMat, method='ward')
     # P=sch.dendrogram(Z)
 
-    raw_package_results['cluster'] = sch.fcluster(Z, t=1.115, criterion='inconsistent', depth=2)
+    raw_package_results['cluster'] = sch.fcluster(Z, t=1.115, criterion='distance', depth=2)
     clusters = sorted(raw_package_results['cluster'].unique())
 
     data_likelihood = pd.DataFrame(columns=['cluster', 'cnt', 'aoa_mean', 'tof_mean', 'aoa_variance', 'tof_variance'])
