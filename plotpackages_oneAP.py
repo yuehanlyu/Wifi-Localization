@@ -13,10 +13,12 @@ pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 if __name__ == '__main__':
-    file_data = load_csi_data.read_bf_file('./sample_data/csi_1122_direct.dat')
+    file_data = load_csi_data.read_bf_file('./sample_data/csi_mid_3.dat')
     antenna_distance = 0.15
     frequency = 2.412 * pow(10, 9)
     sub_freq_delta = 3125
+    theta_range = np.linspace(-90,90,91)
+    tau_range = np.linspace(0,3000 * pow(10,-9),61)
 
     result_aoas = np.array([0.0])
 
@@ -36,7 +38,7 @@ if __name__ == '__main__':
         # return the smoothed_csi matrix
         smoothed_csi = spotfi_algorithms.smooth_csi(csi_matrix_clean)
         maximum_idx_array = spotfi_algorithms.aoa_tof_music(smoothed_csi, antenna_distance, frequency,
-                                                            sub_freq_delta)
+                                                            sub_freq_delta, theta_range, tau_range)
         all_maximum_idx_array = np.vstack((all_maximum_idx_array, maximum_idx_array))
 
     theta = np.linspace(-90, 90, 91)

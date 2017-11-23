@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 if __name__ == '__main__':
     file_data = load_csi_data.read_bf_file('./sample_data/csi_sym_1.dat')
-    antenna_distance = 0.1
+    antenna_distance = 0.15
     frequency = 2.417 * pow(10, 9)
     sub_freq_delta = 3125
 
