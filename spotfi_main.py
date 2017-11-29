@@ -2,9 +2,10 @@
 from __future__ import print_function, absolute_import, division
 import pandas as pd
 import scipy.cluster.hierarchy as sch
-import load_csi_data
+import algo_load_csi_data
 import numpy as np
-import spotfi_algorithms
+import algo_spotfi
+import algo_rssi
 import math
 from tqdm import tqdm
 import warnings
@@ -13,38 +14,41 @@ pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 if __name__ == '__main__':
-    file_data = load_csi_data.read_bf_file('./sample_data/csi_sym_1.dat')
     antenna_distance = 0.15
     frequency = 2.417 * pow(10, 9)
     sub_freq_delta = 3125
 
+    ap_coordinates = np.array([[-2.33,0],[0,0],[2.33,0]])
     theta_range = np.linspace(-90,90,91)
     tau_range = np.linspace(0,3000 * pow(10,-9),61)
 
-    for test_cnt in [1,2,3]:
+    for test_cnt in [3]: # turn of test
 
         result_aoas = np.array([0.0])
+        result_rssi = np.array([0.0])
+        result_likelihood = np.array([0.0])
 
-        for i in [1,2,3]:
+        for i in [1,2,3]:  #1: left 2:mid 3:right
 
-            file_data = load_csi_data.read_bf_file('./sample_data/csi_1123_' + str(i) +'_'+str(test_cnt)+ '.dat')
+            file_data = algo_load_csi_data.read_bf_file('./sample_data/csi_1123_' + str(i) + '_' + str(test_cnt) + '.dat')
+            rssi_ = algo_rssi.rssi(file_data).mean()
 
             csi_entry = file_data.loc[0]
-            csi = load_csi_data.get_scale_csi(csi_entry)
+            csi = algo_load_csi_data.get_scale_csi(csi_entry)
             csi_matrix = csi[0, :, :]
-            C, tau_offset = spotfi_algorithms.spotfi_algorithm_1_package_one(csi_matrix)
+            C, tau_offset = algo_spotfi.spotfi_algorithm_1_package_one(csi_matrix)
 
             all_maximum_idx_array = np.zeros(2)
             for p_i in tqdm(range(10)):
                 csi_entry = file_data.loc[p_i]
-                csi = load_csi_data.get_scale_csi(csi_entry)
+                csi = algo_load_csi_data.get_scale_csi(csi_entry)
                 # run algorithm 1 for the first package
                 csi_matrix = csi[0, :, :]
-                csi_matrix_clean = spotfi_algorithms.spotfi_algorithm_1(csi_matrix, C)
+                csi_matrix_clean = algo_spotfi.spotfi_algorithm_1(csi_matrix, C)
                 # return the smoothed_csi matrix
-                smoothed_csi = spotfi_algorithms.smooth_csi(csi_matrix_clean)
-                maximum_idx_array = spotfi_algorithms.aoa_tof_music(smoothed_csi, antenna_distance, frequency,
-                                                                    sub_freq_delta, theta_range, tau_range)
+                smoothed_csi = algo_spotfi.smooth_csi(csi_matrix_clean)
+                maximum_idx_array = algo_spotfi.aoa_tof_music(smoothed_csi, antenna_distance, frequency,
+                                                              sub_freq_delta, theta_range, tau_range)
                 all_maximum_idx_array = np.vstack((all_maximum_idx_array, maximum_idx_array))
 
             candicate_aoa_tof = np.zeros(2)
@@ -76,8 +80,8 @@ if __name__ == '__main__':
                 data_likelihood.loc[clu_i - 1, 'tof_variance'] = (
                 raw_package_results['tof'][raw_package_results['cluster'] == clu_i]).var()
 
-            weight_num_cluster_points = 0.01
-            weight_aoa_variance = -0.004
+            weight_num_cluster_points = 0.0001
+            weight_aoa_variance = -0.0004
             weight_tof_variance = -0.0016
             weight_tof_mean = -0.0000
             constant_offset = -1
@@ -90,15 +94,40 @@ if __name__ == '__main__':
             data_likelihood['likelihood'].fillna(0, inplace=True)
             # cheating
             data_likelihood['likelihood'][data_likelihood['aoa_mean'] == -90] = 0
+            data_likelihood['likelihood'][data_likelihood['aoa_mean'] == 90] = 0
 
             result_aoa_1 = data_likelihood['aoa_mean'][data_likelihood['likelihood'] == max(data_likelihood['likelihood'])]
+            result_likelihood_1 = data_likelihood['likelihood'][data_likelihood['likelihood'] == max(data_likelihood['likelihood'])]
 
             result_aoas = np.concatenate((result_aoas, np.array([result_aoa_1.iloc[0]])))
+            result_rssi = np.concatenate((result_rssi, np.array([rssi_])))
+            result_likelihood = np.concatenate((result_likelihood, np.array([result_likelihood_1.iloc[0]])))
 
         result_aoas = result_aoas[1:]
+        result_rssi = result_rssi[1:]
+        result_likelihood = result_likelihood[1:]
 
+        theta_left = result_aoas[0]
+        theta_mid = result_aoas[1]
+        theta_right = result_aoas[2]
+        algo_spotfi.csi_plot(theta_left, theta_mid, theta_right)
 
-        distance = 280 - 17
-        x, y = spotfi_algorithms.csi_plot(theta1=result_aoas[0], theta2=result_aoas[1], d=distance)
-        pp.gca().set_aspect('equal', adjustable='box')
-        pp.show()
+        result_aoas = result_aoas[::-1]
+
+        # 一个naive的遍历优化
+        num_AP = 3
+        min_obj = float(np.Inf)
+        final_coor_idx = 0
+        candidate_coordinates = np.array([[2.0, 2.0], [1.0, 1.0], [-2.0, 2.0]])
+        ap_coordinates = np.array([[-2.33, 0], [0, 0], [2.33, 0]])
+        for k in range(candidate_coordinates.shape[0]):  # traverse all candidate coordinates
+            obj = 0.0
+            for i in range(num_AP):  # sum up errors over all APs
+                d = algo_spotfi.ecldDist(ap_coordinates[i],candidate_coordinates[k])
+                theta_ = algo_spotfi.coord2aoa(ap_coordinates[i], candidate_coordinates[k])
+                obj = obj + result_likelihood[i] * (
+                (result_rssi[i] - algo_spotfi.dist2rssi(d, -30, 2.1)) ** 2 + (result_aoas[i] - theta_) ** 2)
+            if obj < min_obj:
+                final_coor_idx = k
+                min_obj = obj
+        print(candidate_coordinates[final_coor_idx, :])

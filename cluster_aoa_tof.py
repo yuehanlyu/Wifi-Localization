@@ -13,7 +13,7 @@ pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 if __name__ == '__main__':
-    file_data = algo_load_csi_data.read_bf_file('./sample_data/csi_1123_3_3.dat')
+    file_data = algo_load_csi_data.read_bf_file('./sample_data/csi_mid_1.dat')
     antenna_distance = 0.15
     frequency = 2.412 * pow(10, 9)
     sub_freq_delta = 3125
@@ -28,8 +28,8 @@ if __name__ == '__main__':
     C, tau_offset = algo_spotfi.spotfi_algorithm_1_package_one(csi_matrix)
 
     all_maximum_idx_array = np.zeros(2)
-    for i in tqdm(range(file_data.shape[0])):
-    #for i in tqdm(range(20)):
+    #for i in tqdm(range(file_data.shape[0])):
+    for i in tqdm(range(20)):
         csi_entry = file_data.loc[i]
         csi = algo_load_csi_data.get_scale_csi(csi_entry)
         # run algorithm 1 for the first package
@@ -41,6 +41,9 @@ if __name__ == '__main__':
                                                       sub_freq_delta, theta_range, tau_range)
         all_maximum_idx_array = np.vstack((all_maximum_idx_array, maximum_idx_array))
 
+    theta_range = np.linspace(-90, 90, 91)
+    tau_range = np.linspace(0, 3000 * pow(10, -9), 61)
+
     candicate_aoa_tof = np.zeros(2)
     for i in range(all_maximum_idx_array.shape[0]):
         c_candicate = np.array((theta_range[int(all_maximum_idx_array[i, 0])], tau_range[int(all_maximum_idx_array[i, 1])]))
@@ -49,7 +52,7 @@ if __name__ == '__main__':
 
     raw_package_results = pd.DataFrame(candicate_aoa_tof, columns=['aoa', 'tof'])
 
-    pp.scatter(raw_package_results['aoa'], raw_package_results['tof'], c="g", alpha=0.5, marker=r'$\clubsuit$',
+    pp.scatter(raw_package_results['aoa'], raw_package_results['tof'], c="r", alpha=0.5, marker=r'$\clubsuit$',
                label="peak values")
     pp.ylim(ymax=raw_package_results['tof'].max(), ymin=0)
     # pp.ylim()
@@ -57,6 +60,8 @@ if __name__ == '__main__':
     pp.ylabel("tof")
     pp.legend(loc=2)
     pp.show()
+
+    print (raw_package_results)
 
     disMat = sch.distance.pdist(candicate_aoa_tof, 'euclidean')
     Z = sch.linkage(disMat, method='ward')

@@ -11,7 +11,6 @@ import matplotlib.pyplot as pp
 pd.options.mode.chained_assignment = None
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-
 def spotfi_algorithm_1_package_one(csi_matrix):
     R = abs(csi_matrix)
     phase_matrix = np.vstack((np.unwrap(map(phase,csi_matrix[0,:])),np.unwrap(map(phase,csi_matrix[1,:])),np.unwrap(map(phase,csi_matrix[2,:]))))
@@ -172,3 +171,75 @@ def csi_plot(theta1, theta2, d):
     pp.axis(ymin=0, ymax=1.2*y)
     pp.text(x,y+1,'({0},{1})'.format(x,y))
     return x,y
+
+def csi_plot(theta_left, theta_mid, theta_right):
+    # theta_left = result_aoas[0]
+    # theta_mid = result_aoas[1]
+    # theta_right = result_aoas[2]
+
+    rad_left = theta_left * math.pi / 180
+    rad_mid = theta_mid * math.pi / 180
+    rad_right = theta_right * math.pi / 180
+
+    k_left = math.tan(rad_left)
+    k_mid = math.tan(rad_mid)
+    k_right = math.tan(rad_right)
+
+    x = np.zeros(3, dtype=float)
+    y = np.zeros(3, dtype=float)
+
+    x[0] = -2.23 * k_right / (k_right - k_mid)
+    y[0] = 2.33 * k_right * k_mid / (k_mid - k_right)
+    x[1] = 2.23 * k_left / (k_left - k_mid)
+    y[1] = -2.33 * k_left * k_mid / (k_mid - k_left)
+
+    x[2] = 2.33 * (k_left + k_right) / (k_left - k_right)
+    y[2] = (x[2] - 2.33) * k_left
+
+    print(x)
+    print(y)
+
+    X = [-2.33, 0, 2.33]
+    Y = [0, 0, 0]
+    Tar_x = [0]
+    Tar_y = [2.54]
+    pp.scatter(X, Y, color='blue', label="Signal Receiver")
+    pp.scatter(x, y, color='salmon', label="Candidate location")
+    pp.scatter(Tar_x, Tar_y, color='green', label="True location")
+    pp.legend(loc=0)
+    pp.axis(ymin=0, ymax=4)
+    pp.show()
+
+def dbinv(x):
+    ret = 10**(x/10)
+    return ret
+
+def db(x):
+    try: # if input is a series
+        ret = 10.*np.log10(list(x))
+        return ret
+    except: # if input is a number
+        ret = 10.*np.log10(x)
+        return ret
+
+def rssi(file_data):
+    rssi_mag = dbinv(file_data["rssi_a"])+dbinv(file_data["rssi_b"])+dbinv(file_data["rssi_c"])
+    rssi_ = db(rssi_mag) - 44 - file_data['agc']
+    return rssi_
+
+def rssi2dist(rssi_,A,n):
+    dist = 10**((A-rssi_)/(10*n))
+    return dist
+
+def dist2rssi(d,A,n):
+    ret = A - 10*n*np.log10(d)
+    return ret
+
+def ecldDist(coor1, coor2):
+    dist = math.sqrt((coor1[0]-coor2[0])**2+(coor1[1]-coor2[1])**2)
+    return dist
+
+def coord2aoa(coorAP, coorTar):
+    tang = (coorTar[1]-coorAP[1])/(coorTar[0]-coorAP[0])
+    theta = math.atan(tang)/math.pi*180-90
+    return theta
